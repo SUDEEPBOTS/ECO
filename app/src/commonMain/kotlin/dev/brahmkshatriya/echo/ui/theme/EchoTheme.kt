@@ -62,10 +62,12 @@ fun EchoTheme(
         motionScheme = MotionScheme.expressive(),
         typography = typography
     ) {
-        Surface(color = colorScheme.surfaceContainer) {
-//            ShaderBG(colorScheme)
-            val bg = colorScheme.surface
-//            val bg = Color.Black.copy(0.33f)
+        // Yahan background ko transparent kiya gaya hai taaki image dikhe
+        Surface(color = Color.Transparent) {
+            
+            // App ke baaki elements (jaise bottom sheet) ko 40% transparent Glass Effect de diya hai
+            val bg = colorScheme.surface.copy(alpha = 0.4f)
+            
             SharedTransitionLayout {
                 CompositionLocalProvider(
                     LocalSurfaceColor provides bg,
