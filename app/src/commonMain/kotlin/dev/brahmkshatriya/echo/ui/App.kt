@@ -12,6 +12,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +35,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,6 +56,7 @@ import dev.brahmkshatriya.echo.ui.player.LocalPlayerSheet
 import dev.brahmkshatriya.echo.ui.player.PlayerBottomSheet
 import dev.brahmkshatriya.echo.ui.theme.EchoTheme
 import dev.brahmkshatriya.echo.ui.theme.LocalSurfaceColor
+import echo.app.generated.resources.Hi
 import echo.app.generated.resources.Res
 import echo.app.generated.resources.compose_multiplatform
 import kotlinx.coroutines.launch
@@ -79,59 +83,72 @@ private val config = SavedStateConfiguration {
 @Preview
 @Composable
 fun App() = EchoTheme {
-    val initialSheetValue = LocalInitialPlayerSheetValue.current
-    val betterSheet = rememberBetterSheet(72.dp, initialSheetValue)
-    val startPadding = remember { mutableStateOf(0.dp) }
-    val bottomPadding = remember { mutableStateOf(0.dp) }
-    val backStack = rememberNavBackStack(
-        config, Main(MainRoute.Home)
-    )
-    PlayerBottomSheet(betterSheet, startPadding.value, bottomPadding.value) {
-        val sheetPaddingState = remember { mutableStateOf(0.dp) }
-        LaunchedEffect(betterSheet) {
-            snapshotFlow { betterSheet.progressState.floatValue < -0.8f }.collect {
-                sheetPaddingState.value = if (it) 0.dp else betterSheet.peekHeight - 8.dp
-            }
-        }
-        LookaheadScope {
-            val modifier = Modifier
+    Box(modifier = Modifier.fillMaxSize()) {
+        
+        // Tumhara Custom Blur Background Image Yahan Hai
+        Image(
+            painter = painterResource(Res.drawable.Hi),
+            contentDescription = "Background",
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    start = startPadding.value,
-                    bottom = bottomPadding.value
-                )
-                .padding(bottom = sheetPaddingState.value)
-                .animateBounds(this)
-            val isExpanded = LocalPlayerSheet.current?.isExpandedState?.value ?: false
-            BetterNavDisplay(
-                backStack,
-                !isExpanded,
-                modifier
-            ) {
-                entry<Main> {
-                    it.route.content()
-                }
+                .blur(20.dp), // Blur ki intensity. Ise kam ya zyada kar sakte ho.
+            contentScale = ContentScale.Crop
+        )
 
-                entry<Media> {
-                    Test(it.toString())
+        val initialSheetValue = LocalInitialPlayerSheetValue.current
+        val betterSheet = rememberBetterSheet(72.dp, initialSheetValue)
+        val startPadding = remember { mutableStateOf(0.dp) }
+        val bottomPadding = remember { mutableStateOf(0.dp) }
+        val backStack = rememberNavBackStack(
+            config, Main(MainRoute.Home)
+        )
+        PlayerBottomSheet(betterSheet, startPadding.value, bottomPadding.value) {
+            val sheetPaddingState = remember { mutableStateOf(0.dp) }
+            LaunchedEffect(betterSheet) {
+                snapshotFlow { betterSheet.progressState.floatValue < -0.8f }.collect {
+                    sheetPaddingState.value = if (it) 0.dp else betterSheet.peekHeight - 8.dp
                 }
             }
-            AnimatedVisibility(backStack.size == 1, modifier, fadeIn(), fadeOut()) {
-                ExtensionSelectorFABMenu()
+            LookaheadScope {
+                val modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = startPadding.value,
+                        bottom = bottomPadding.value
+                    )
+                    .padding(bottom = sheetPaddingState.value)
+                    .animateBounds(this)
+                val isExpanded = LocalPlayerSheet.current?.isExpandedState?.value ?: false
+                BetterNavDisplay(
+                    backStack,
+                    !isExpanded,
+                    modifier
+                ) {
+                    entry<Main> {
+                        it.route.content()
+                    }
+
+                    entry<Media> {
+                        Test(it.toString())
+                    }
+                }
+                AnimatedVisibility(backStack.size == 1, modifier, fadeIn(), fadeOut()) {
+                    ExtensionSelectorFABMenu()
+                }
             }
         }
-    }
 
-    MainSideNavigation(
-        backStack.size == 1,
-        backStack.size == 2,
-        betterSheet.peekHeight,
-        betterSheet.progressState,
-        (backStack.last() as? Main)?.route,
-        bottomPadding,
-        startPadding
-    ) {
-        if (backStack.size == 1) backStack[0] = Main(it)
+        MainSideNavigation(
+            backStack.size == 1,
+            backStack.size == 2,
+            betterSheet.peekHeight,
+            betterSheet.progressState,
+            (backStack.last() as? Main)?.route,
+            bottomPadding,
+            startPadding
+        ) {
+            if (backStack.size == 1) backStack[0] = Main(it)
+        }
     }
 }
 
